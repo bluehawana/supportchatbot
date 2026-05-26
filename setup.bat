@@ -56,13 +56,15 @@ echo [OK] Knowledge base found.
 :: -----------------------------------------------------------
 :: Step 4: Check .env exists (pre-configured from OneDrive)
 :: -----------------------------------------------------------
-:: Auto-rename if downloaded with OneDrive filename
+:: Auto-rename if downloaded with OneDrive filename (handles duplicates like (2), (3), etc.)
 if not exist "!BASEDIR!.env" (
-    if exist "!BASEDIR!supportbot-env-for-onedrive.env" (
-        move "!BASEDIR!supportbot-env-for-onedrive.env" "!BASEDIR!.env" >nul
-        echo [OK] Renamed supportbot-env-for-onedrive.env to .env
+    for %%F in ("!BASEDIR!supportbot-env*.env") do (
+        move "%%F" "!BASEDIR!.env" >nul
+        echo [OK] Renamed %%~nxF to .env
+        goto :env_found
     )
 )
+:env_found
 if not exist "!BASEDIR!.env" (
     echo.
     echo [ERROR] .env not found in this folder.
@@ -97,7 +99,7 @@ docker run -d --name supportbot ^
     --cpus 2 ^
     --restart unless-stopped ^
     --env-file "!BASEDIR!.env" ^
-    -v "!BASEDIR!kb.json:/app/kb.json:ro" ^
+    -v "!BASEDIR!kb.json:/app/kb.json" ^
     hongzhili40526/supportbot:latest
 
 if %errorlevel% neq 0 (
