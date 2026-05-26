@@ -1,6 +1,8 @@
 @echo off
 title SupportBot Setup
-setlocal
+setlocal enabledelayedexpansion
+
+set "BASEDIR=%~dp0"
 
 echo ============================================================
 echo   SupportBot - IT Support Assistant Setup
@@ -27,22 +29,23 @@ if %errorlevel% neq 0 (
     echo.
     echo [INFO] Pulling SupportBot image from Docker Hub...
     docker pull hongzhili40526/supportbot:latest
-    if %errorlevel% neq 0 (
-        echo [ERROR] Pull failed. Check your internet connection.
-        pause
-        exit /b 1
-    )
+)
+docker image inspect hongzhili40526/supportbot:latest >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [ERROR] Pull failed. Check your internet connection.
+    pause
+    exit /b 1
 )
 echo [OK] SupportBot image found.
 
 :: -----------------------------------------------------------
 :: Step 3: Check kb.json exists
 :: -----------------------------------------------------------
-if not exist "%~dp0kb.json" (
+if not exist "!BASEDIR!kb.json" (
     echo.
     echo [ERROR] kb.json not found in this folder.
     echo.
-    echo   Download from OneDrive (open in browser - requires corporate login):
+    echo   Download from OneDrive - open in browser, requires corporate login.
     echo   Save as "kb.json" in this folder, then run setup.bat again.
     echo.
     pause
@@ -54,18 +57,18 @@ echo [OK] Knowledge base found.
 :: Step 4: Check .env exists (pre-configured from OneDrive)
 :: -----------------------------------------------------------
 :: Auto-rename if downloaded with OneDrive filename
-if not exist "%~dp0.env" (
-    if exist "%~dp0supportbot-env-for-onedrive.env" (
-        rename "%~dp0supportbot-env-for-onedrive.env" ".env"
+if not exist "!BASEDIR!.env" (
+    if exist "!BASEDIR!supportbot-env-for-onedrive.env" (
+        move "!BASEDIR!supportbot-env-for-onedrive.env" "!BASEDIR!.env" >nul
         echo [OK] Renamed supportbot-env-for-onedrive.env to .env
     )
 )
-if not exist "%~dp0.env" (
+if not exist "!BASEDIR!.env" (
     echo.
     echo [ERROR] .env not found in this folder.
     echo.
-    echo   Download from OneDrive (open in browser - requires corporate login):
-    echo   Save as ".env" in this folder, then run setup.bat again.
+    echo   Download from OneDrive - open in browser, requires corporate login.
+    echo   Save the .env file in this folder, then run setup.bat again.
     echo.
     echo   The .env file contains Ollama server URLs and model config.
     echo   No credentials are needed for SupportBot.
@@ -93,8 +96,8 @@ docker run -d --name supportbot ^
     --memory 1024m ^
     --cpus 2 ^
     --restart unless-stopped ^
-    --env-file "%~dp0.env" ^
-    -v "%~dp0kb.json:/app/kb.json:ro" ^
+    --env-file "!BASEDIR!.env" ^
+    -v "!BASEDIR!kb.json:/app/kb.json:ro" ^
     hongzhili40526/supportbot:latest
 
 if %errorlevel% neq 0 (
