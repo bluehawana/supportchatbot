@@ -40,13 +40,16 @@ echo [OK] SupportBot image found.
 :: -----------------------------------------------------------
 if not exist "%~dp0\kb.json" (
     echo.
-    echo [INFO] Downloading knowledge base from OneDrive...
-    curl --ssl-no-revoke -L -o "%~dp0kb.json" "https://volvogroup-my.sharepoint.com/:u:/g/personal/harvad_li_consultant_volvo_com/IQCYuXfVFOcDRKg-Kk4AF6PEAUN7KAQ1eDhOUmvVtFRXyu4?download=1"
-    if %errorlevel% neq 0 (
-        echo [ERROR] Download failed. Download kb.json manually from OneDrive and place in this folder.
-        pause
-        exit /b 1
-    )
+    echo [ERROR] kb.json not found in this folder.
+    echo.
+    echo   Download it from OneDrive (open in browser, not curl):
+    echo   https://volvogroup-my.sharepoint.com/:u:/g/personal/harvad_li_consultant_volvo_com/IQCYuXfVFOcDRKg-Kk4AF6PEAUN7KAQ1eDhOUmvVtFRXyu4?download=1
+    echo.
+    echo   Save kb.json to: %~dp0
+    echo   Then run this script again.
+    echo.
+    pause
+    exit /b 1
 )
 echo [OK] Knowledge base found.
 
