@@ -53,6 +53,13 @@ echo [OK] Knowledge base found.
 :: -----------------------------------------------------------
 :: Step 4: Check .env exists (pre-configured from OneDrive)
 :: -----------------------------------------------------------
+:: Auto-rename if downloaded with OneDrive filename
+if not exist "%~dp0.env" (
+    if exist "%~dp0supportbot-env-for-onedrive.env" (
+        rename "%~dp0supportbot-env-for-onedrive.env" ".env"
+        echo [OK] Renamed supportbot-env-for-onedrive.env to .env
+    )
+)
 if not exist "%~dp0.env" (
     echo.
     echo [ERROR] .env not found in this folder.
