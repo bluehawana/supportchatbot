@@ -20,34 +20,17 @@ if %errorlevel% neq 0 (
 echo [OK] Docker is running.
 
 :: -----------------------------------------------------------
-:: Step 2: Check if supportbot image exists, load from .tar
+:: Step 2: Check if supportbot image exists, pull if not
 :: -----------------------------------------------------------
-docker image inspect ghcr.io/harvad-li_volvo/supportbot:latest >nul 2>&1
+docker image inspect hongzhili40526/supportbot:latest >nul 2>&1
 if %errorlevel% neq 0 (
-    docker image inspect supportbot:latest >nul 2>&1
+    echo.
+    echo [INFO] Pulling SupportBot image from Docker Hub...
+    docker pull hongzhili40526/supportbot:latest
     if %errorlevel% neq 0 (
-        if not exist "%~dp0supportbot-image.tar" (
-            echo.
-            echo [INFO] Downloading SupportBot image...
-            curl --ssl-no-revoke -L -o "%~dp0supportbot-image.tar" "https://volvogroup-my.sharepoint.com/:u:/g/personal/harvad_li_consultant_volvo_com/IQA2o1R2vsoHTrLmLczyCVBmAagYlaMf-XUsO9vO7YLNV2s?download=1"
-            if %errorlevel% neq 0 (
-                echo [ERROR] Download failed. Make sure you are on the Volvo network.
-                pause
-                exit /b 1
-            )
-        )
-        echo.
-        echo [INFO] Loading SupportBot image from supportbot-image.tar...
-        docker load -i "%~dp0supportbot-image.tar"
-        docker image inspect ghcr.io/harvad-li_volvo/supportbot:latest >nul 2>&1
-        if %errorlevel% neq 0 (
-            docker image inspect supportbot:latest >nul 2>&1
-            if %errorlevel% neq 0 (
-                echo [ERROR] Failed to load image from .tar file.
-                pause
-                exit /b 1
-            )
-        )
+        echo [ERROR] Pull failed. Check your internet connection.
+        pause
+        exit /b 1
     )
 )
 echo [OK] SupportBot image found.
@@ -117,7 +100,7 @@ docker stop supportbot >nul 2>&1
 docker rm supportbot >nul 2>&1
 
 :: Determine which image name to use
-set IMAGE=ghcr.io/harvad-li_volvo/supportbot:latest
+set IMAGE=hongzhili40526/supportbot:latest
 docker image inspect %IMAGE% >nul 2>&1
 if %errorlevel% neq 0 set IMAGE=supportbot:latest
 
