@@ -71,20 +71,37 @@ echo   Enter your configuration
 echo -----------------------------------------------------------
 echo.
 echo   You need the Ollama server URL from your team lead.
-echo   Default: http://10.222.19.229:11434
 echo.
 
-set /p OLLAMA_HOST="Primary Ollama URL (Enter for default): "
-if "%OLLAMA_HOST%"=="" set OLLAMA_HOST=http://10.222.19.229:11434
+set /p OLLAMA_HOST="Primary Ollama URL: "
+if "%OLLAMA_HOST%"=="" (
+    echo [ERROR] Ollama URL is required. Ask your team lead for the URL.
+    pause
+    exit /b 1
+)
 
 set /p OLLAMA_HOST2="Secondary Ollama URL (Enter to skip): "
 
 :: Write .env file
 echo Ollama__Hosts__0=%OLLAMA_HOST%> "%ENV_FILE%"
 if not "%OLLAMA_HOST2%"=="" echo Ollama__Hosts__1=%OLLAMA_HOST2%>> "%ENV_FILE%"
-echo Ollama__ChatModel=qwen3.5:35b>> "%ENV_FILE%"
-echo Ollama__FallbackChatModel=mistral-small3.1>> "%ENV_FILE%"
-echo Ollama__EmbeddingModel=nomic-embed-text>> "%ENV_FILE%"
+
+set /p CHAT_MODEL="Chat model (ask team lead): "
+if "%CHAT_MODEL%"=="" (
+    echo [ERROR] Chat model is required. Ask your team lead.
+    pause
+    exit /b 1
+)
+
+set /p EMBED_MODEL="Embedding model (ask team lead): "
+if "%EMBED_MODEL%"=="" (
+    echo [ERROR] Embedding model is required. Ask your team lead.
+    pause
+    exit /b 1
+)
+
+echo Ollama__ChatModel=%CHAT_MODEL%>> "%ENV_FILE%"
+echo Ollama__EmbeddingModel=%EMBED_MODEL%>> "%ENV_FILE%"
 echo.
 echo [OK] Config saved. This file is git-ignored and stays on your machine only.
 
