@@ -20,7 +20,7 @@ if %errorlevel% neq 0 (
 echo [OK] Docker is running.
 
 :: -----------------------------------------------------------
-:: Step 2: Check if supportbot image exists, pull if not
+:: Step 2: Pull image from Docker Hub (no login needed)
 :: -----------------------------------------------------------
 docker image inspect hongzhili40526/supportbot:latest >nul 2>&1
 if %errorlevel% neq 0 (
@@ -38,15 +38,12 @@ echo [OK] SupportBot image found.
 :: -----------------------------------------------------------
 :: Step 3: Check kb.json exists
 :: -----------------------------------------------------------
-if not exist "%~dp0\kb.json" (
+if not exist "%~dp0kb.json" (
     echo.
     echo [ERROR] kb.json not found in this folder.
     echo.
-    echo   Download it from OneDrive (open in browser, not curl):
-    echo   https://volvogroup-my.sharepoint.com/:u:/g/personal/harvad_li_consultant_volvo_com/IQCYuXfVFOcDRKg-Kk4AF6PEAUN7KAQ1eDhOUmvVtFRXyu4?download=1
-    echo.
-    echo   Save kb.json to: %~dp0
-    echo   Then run this script again.
+    echo   Download from OneDrive (open in browser - requires corporate login):
+    echo   Save as "kb.json" in this folder, then run setup.bat again.
     echo.
     pause
     exit /b 1
@@ -54,62 +51,26 @@ if not exist "%~dp0\kb.json" (
 echo [OK] Knowledge base found.
 
 :: -----------------------------------------------------------
-:: Step 4: Load existing config or prompt for new
+:: Step 4: Check .env exists (pre-configured from OneDrive)
 :: -----------------------------------------------------------
-set ENV_FILE=%~dp0.env
-
-if exist "%ENV_FILE%" (
+if not exist "%~dp0.env" (
     echo.
-    echo Found existing config: %ENV_FILE%
-    set /p REUSE="Use existing config? (Y/n): "
-    if /i "%REUSE%" neq "n" goto run
-)
-
-echo.
-echo -----------------------------------------------------------
-echo   Enter your configuration
-echo -----------------------------------------------------------
-echo.
-echo   You need the Ollama server URL from your team lead.
-echo.
-
-set /p OLLAMA_HOST="Primary Ollama URL: "
-if "%OLLAMA_HOST%"=="" (
-    echo [ERROR] Ollama URL is required. Ask your team lead for the URL.
+    echo [ERROR] .env not found in this folder.
+    echo.
+    echo   Download from OneDrive (open in browser - requires corporate login):
+    echo   Save as ".env" in this folder, then run setup.bat again.
+    echo.
+    echo   The .env file contains Ollama server URLs and model config.
+    echo   No credentials are needed for SupportBot.
+    echo.
     pause
     exit /b 1
 )
-
-set /p OLLAMA_HOST2="Secondary Ollama URL (Enter to skip): "
-
-:: Write .env file
-echo Ollama__Hosts__0=%OLLAMA_HOST%> "%ENV_FILE%"
-if not "%OLLAMA_HOST2%"=="" echo Ollama__Hosts__1=%OLLAMA_HOST2%>> "%ENV_FILE%"
-
-set /p CHAT_MODEL="Chat model (ask team lead): "
-if "%CHAT_MODEL%"=="" (
-    echo [ERROR] Chat model is required. Ask your team lead.
-    pause
-    exit /b 1
-)
-
-set /p EMBED_MODEL="Embedding model (ask team lead): "
-if "%EMBED_MODEL%"=="" (
-    echo [ERROR] Embedding model is required. Ask your team lead.
-    pause
-    exit /b 1
-)
-
-echo Ollama__ChatModel=%CHAT_MODEL%>> "%ENV_FILE%"
-echo Ollama__EmbeddingModel=%EMBED_MODEL%>> "%ENV_FILE%"
-echo.
-echo [OK] Config saved. This file is git-ignored and stays on your machine only.
+echo [OK] Configuration found.
 
 :: -----------------------------------------------------------
 :: Step 5: Run the container
 :: -----------------------------------------------------------
-:run
-
 echo.
 echo ============================================================
 echo   Starting SupportBot...
@@ -119,11 +80,6 @@ echo ============================================================
 docker stop supportbot >nul 2>&1
 docker rm supportbot >nul 2>&1
 
-:: Determine which image name to use
-set IMAGE=hongzhili40526/supportbot:latest
-docker image inspect %IMAGE% >nul 2>&1
-if %errorlevel% neq 0 set IMAGE=supportbot:latest
-
 :: Run container
 docker run -d --name supportbot ^
     -p 5050:8080 ^
@@ -132,7 +88,7 @@ docker run -d --name supportbot ^
     --restart unless-stopped ^
     --env-file "%~dp0.env" ^
     -v "%~dp0kb.json:/app/kb.json:ro" ^
-    %IMAGE%
+    hongzhili40526/supportbot:latest
 
 if %errorlevel% neq 0 (
     echo.
