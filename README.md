@@ -1,10 +1,10 @@
 # SupportChatBot
 
-AI-powered IT support assistant for the SWC team at Volvo Group Digital Technology & Operations.
+AI-powered IT support assistant.
 
 ## Architecture
 
-The service runs as a single Docker container that serves a web UI on port 5050. All AI inference happens on-premises using local Mac Studio servers running Ollama — no cloud APIs, no data leaving the Volvo network.
+The service runs as a single Docker container that serves a web UI on port 5050. All AI inference happens on-premises using local Mac Studio servers running Ollama — no cloud APIs, no data leaving the corporate network.
 
 ```
 User Browser → Docker Container (port 5050) → Ollama (internal Mac Studios)
@@ -27,19 +27,19 @@ The application is packaged as a Docker image published to Docker Hub. This mean
 
 Three layers of separation keep things safe:
 
-1. **Application code** (Docker image, public) — contains zero Volvo data. Just the .NET app that processes queries. Anyone can pull it; there's nothing sensitive inside.
+1. **Application code** (Docker image, public) — contains zero corporate data. Just the .NET app that processes queries. Anyone can pull it; there's nothing sensitive inside.
 
-2. **Knowledge base** (kb.json, private) — contains embedded Volvo internal knowledge. Distributed separately through authenticated corporate channels. Never committed to any public repository.
+2. **Knowledge base** (kb.json, private) — contains embedded corporate internal knowledge. Distributed separately through authenticated corporate channels. Never committed to any public repository.
 
 3. **Configuration** (.env file, local only) — created at setup time on each machine. Contains only internal server URLs. Never leaves the user's laptop.
 
-This separation means the public Docker image is safe to host openly, while sensitive knowledge stays within Volvo's authenticated perimeter.
+This separation means the public Docker image is safe to host openly, while sensitive knowledge stays within corporate's authenticated perimeter.
 
 ### Authentication
 
 - **Docker image**: No authentication needed. Public pull from Docker Hub.
-- **Knowledge base**: Requires Volvo SSO (corporate browser login). Cannot be downloaded programmatically — this is intentional, not a bug.
-- **Ollama servers**: Only reachable from the Volvo internal network. No auth tokens needed — network boundary is the access control.
+- **Knowledge base**: Requires corporate SSO (corporate browser login). Cannot be downloaded programmatically — this is intentional, not a bug.
+- **Ollama servers**: Only reachable from the corporate internal network. No auth tokens needed — network boundary is the access control.
 - **The bot itself**: No user login. It runs locally on your machine, talks only to internal servers.
 
 ### Efficiency & Load Balancing
@@ -60,7 +60,7 @@ All inference runs on two Mac Studios on the internal network:
 
 ## Setup
 
-Requires: Docker Desktop running, Volvo network access.
+Requires: Docker Desktop running, corporate network access.
 
 1. Clone this repo
 2. Obtain `kb.json` from your team lead (browser download, corporate auth required)
@@ -76,6 +76,4 @@ The bot will be available at `http://localhost:5050`.
 | `diagnose.bat` | Collects diagnostics for troubleshooting |
 | `kb.json` | Knowledge base (not in repo — obtained separately) |
 
-## Team
 
-SWC Team, Volvo Group Digital Technology & Operations
