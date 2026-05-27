@@ -130,13 +130,15 @@ if %errorlevel% equ 0 (
 )
 
 :: Check health endpoint
-curl -s http://localhost:5050/health | findstr /C:"ok" >nul
+curl -s http://localhost:5050/health > "!BASEDIR!.health_tmp" 2>nul
+findstr /C:"ok" "!BASEDIR!.health_tmp" >nul 2>nul
 if %errorlevel% equ 0 (
     echo [OK] Health check passed - both Ollama servers reachable.
 ) else (
     echo [WARN] Health check failed - Ollama servers may not be reachable.
     echo        Make sure you are on the Volvo network or VPN.
 )
+del "!BASEDIR!.health_tmp" >nul 2>nul
 
 echo.
 echo ============================================================
