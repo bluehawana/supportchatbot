@@ -25,10 +25,11 @@ echo [OK] Docker is running.
 :: Step 2: Pull latest image from Docker Hub (always pull to get updates)
 :: -----------------------------------------------------------
 echo.
-echo [INFO] Checking for latest SupportBot image...
+echo [INFO] Cleaning up old images and containers...
 docker stop supportbot >nul 2>&1
 docker rm supportbot >nul 2>&1
 docker rmi hongzhili40526/supportbot:latest >nul 2>&1
+docker image prune -f >nul 2>&1
 echo [INFO] Pulling fresh image from Docker Hub...
 docker pull hongzhili40526/supportbot:latest
 if %errorlevel% neq 0 (
