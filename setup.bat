@@ -22,21 +22,17 @@ if %errorlevel% neq 0 (
 echo [OK] Docker is running.
 
 :: -----------------------------------------------------------
-:: Step 2: Pull image from Docker Hub (no login needed)
+:: Step 2: Pull latest image from Docker Hub (always pull to get updates)
 :: -----------------------------------------------------------
-docker image inspect hongzhili40526/supportbot:latest >nul 2>&1
-if %errorlevel% neq 0 (
-    echo.
-    echo [INFO] Pulling SupportBot image from Docker Hub...
-    docker pull hongzhili40526/supportbot:latest
-)
-docker image inspect hongzhili40526/supportbot:latest >nul 2>&1
+echo.
+echo [INFO] Pulling latest SupportBot image from Docker Hub...
+docker pull hongzhili40526/supportbot:latest
 if %errorlevel% neq 0 (
     echo [ERROR] Pull failed. Check your internet connection.
     pause
     exit /b 1
 )
-echo [OK] SupportBot image found.
+echo [OK] SupportBot image ready.
 
 :: -----------------------------------------------------------
 :: -----------------------------------------------------------
