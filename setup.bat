@@ -39,19 +39,10 @@ if %errorlevel% neq 0 (
 echo [OK] SupportBot image found.
 
 :: -----------------------------------------------------------
-:: Step 3: Check kb.json exists
 :: -----------------------------------------------------------
-if not exist "!BASEDIR!kb.json" (
-    echo.
-    echo [ERROR] kb.json not found in this folder.
-    echo.
-    echo   Download from OneDrive - open in browser, requires corporate login.
-    echo   Save as "kb.json" in this folder, then run setup.bat again.
-    echo.
-    pause
-    exit /b 1
-)
-echo [OK] Knowledge base found.
+:: Step 3: kb.json is baked into the Docker image — no download needed
+:: -----------------------------------------------------------
+echo [OK] Knowledge base included in Docker image.
 
 :: -----------------------------------------------------------
 :: Step 4: Check .env exists (pre-configured from OneDrive)
@@ -101,7 +92,6 @@ docker run -d --name supportbot ^
     --cpus 2 ^
     --restart unless-stopped ^
     --env-file "!ENVFILE!" ^
-    -v "!BASEDIR!kb.json:/app/kb.json" ^
     hongzhili40526/supportbot:latest
 
 if %errorlevel% neq 0 (
