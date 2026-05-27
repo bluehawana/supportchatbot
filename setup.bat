@@ -111,7 +111,40 @@ if %errorlevel% neq 0 (
 
 :: Wait and check
 echo Waiting for startup...
-timeout /t 8 /nobreak >nul
+timeout /t 10 /nobreak >nul
+
+:: Verify the container is actually healthy
+docker logs supportbot 2>&1 | findstr /C:"STARTUP FAILED" >nul
+if %errorlevel% equ 0 (
+    echo.
+    echo [ERROR] Container started but configuration is wrong!
+    echo.
+    echo   Checking .env file...
+    echo   ---
+    type "!BASEDIR!.env"
+    echo   ---
+    echo.
+    echo   The .env file may have wrong encoding (BOM character from OneDrive).
+    echo   Fix: Open .env in Notepad, Save As, choose "UTF-8" (not "UTF-8 with BOM").
+    echo   Or delete .env and recreate it with this content:
+    echo.
+    echo     Ollama__Hosts__0=http://10.222.19.229:11434
+    echo     Ollama__Hosts__1=http://10.222.10.30:11434
+    echo.
+    docker stop supportbot >nul 2>&1
+    docker rm supportbot >nul 2>&1
+    pause
+    exit /b 1
+)
+
+:: Check health endpoint
+curl -s http://localhost:5050/health | findstr /C:"ok" >nul
+if %errorlevel% equ 0 (
+    echo [OK] Health check passed - both Ollama servers reachable.
+) else (
+    echo [WARN] Health check failed - Ollama servers may not be reachable.
+    echo        Make sure you are on the Volvo network or VPN.
+)
 
 echo.
 echo ============================================================
