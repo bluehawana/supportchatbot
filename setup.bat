@@ -56,29 +56,31 @@ echo [OK] Knowledge base found.
 :: -----------------------------------------------------------
 :: Step 4: Check .env exists (pre-configured from OneDrive)
 :: -----------------------------------------------------------
-:: Auto-rename if downloaded with OneDrive filename (handles duplicates like (2), (3), etc.)
-if not exist "!BASEDIR!.env" (
-    for %%F in ("!BASEDIR!supportbot-env*.env") do (
-        move "%%F" "!BASEDIR!.env" >nul
-        echo [OK] Renamed %%~nxF to .env
-        goto :env_found
-    )
+:: Accept both .env and supportbot-env*.env (OneDrive download name)
+set "ENVFILE="
+if exist "!BASEDIR!.env" (
+    set "ENVFILE=!BASEDIR!.env"
+    echo [OK] Configuration found (.env^)
+    goto :env_ready
 )
-:env_found
-if not exist "!BASEDIR!.env" (
-    echo.
-    echo [ERROR] .env not found in this folder.
-    echo.
-    echo   Download from OneDrive - open in browser, requires corporate login.
-    echo   Save the .env file in this folder, then run setup.bat again.
-    echo.
-    echo   The .env file contains Ollama server URLs and model config.
-    echo   No credentials are needed for SupportBot.
-    echo.
-    pause
-    exit /b 1
+for %%F in ("!BASEDIR!supportbot-env*.env") do (
+    set "ENVFILE=%%F"
+    echo [OK] Configuration found (%%~nxF^)
+    goto :env_ready
 )
-echo [OK] Configuration found.
+echo.
+echo [ERROR] .env not found in this folder.
+echo.
+echo   Download from OneDrive - open in browser, requires corporate login.
+echo   Save the .env file in this folder, then run setup.bat again.
+echo   You can keep the OneDrive filename or rename it to .env - both work.
+echo.
+echo   The .env file contains Ollama server URLs and model config.
+echo   No credentials are needed for SupportBot.
+echo.
+pause
+exit /b 1
+:env_ready
 
 :: -----------------------------------------------------------
 :: Step 5: Run the container
@@ -98,7 +100,7 @@ docker run -d --name supportbot ^
     --memory 1024m ^
     --cpus 2 ^
     --restart unless-stopped ^
-    --env-file "!BASEDIR!.env" ^
+    --env-file "!ENVFILE!" ^
     -v "!BASEDIR!kb.json:/app/kb.json" ^
     hongzhili40526/supportbot:latest
 
@@ -119,9 +121,9 @@ if %errorlevel% equ 0 (
     echo.
     echo [ERROR] Container started but configuration is wrong!
     echo.
-    echo   Checking .env file...
+    echo   Checking config file...
     echo   ---
-    type "!BASEDIR!.env"
+    type "!ENVFILE!"
     echo   ---
     echo.
     echo   The .env file may have wrong encoding (BOM character from OneDrive).
