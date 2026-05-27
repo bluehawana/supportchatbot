@@ -27,8 +27,8 @@ echo [OK] Docker is running.
 echo.
 echo [INFO] Cleaning up old images and containers...
 docker stop supportbot >nul 2>&1
-docker rm supportbot >nul 2>&1
-docker rmi hongzhili40526/supportbot:latest >nul 2>&1
+docker rm -f supportbot >nul 2>&1
+docker rmi -f hongzhili40526/supportbot:latest >nul 2>&1
 docker image prune -f >nul 2>&1
 echo [INFO] Pulling fresh image from Docker Hub...
 docker pull hongzhili40526/supportbot:latest
@@ -100,7 +100,7 @@ if %errorlevel% neq 0 (
 
 :: Wait and check
 echo Waiting for startup...
-timeout /t 10 /nobreak >nul
+ping -n 11 127.0.0.1 >nul 2>nul
 
 :: Verify the container is actually healthy
 docker logs supportbot 2>&1 | findstr /C:"STARTUP FAILED" >nul
@@ -126,16 +126,14 @@ if %errorlevel% equ 0 (
     exit /b 1
 )
 
-:: Check health endpoint
-curl -s http://localhost:5050/health > "!BASEDIR!.health_tmp" 2>nul
-findstr /C:"ok" "!BASEDIR!.health_tmp" >nul 2>nul
+:: Check health endpoint (use powershell for reliability)
+powershell -NoProfile -Command "try { $r = Invoke-WebRequest -Uri 'http://localhost:5050/health' -UseBasicParsing -TimeoutSec 5; if ($r.Content -match 'ok') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>nul
 if %errorlevel% equ 0 (
-    echo [OK] Health check passed - both Ollama servers reachable.
+    echo [OK] Health check passed - SupportBot is responding.
 ) else (
-    echo [WARN] Health check failed - Ollama servers may not be reachable.
-    echo        Make sure you are on the Volvo network or VPN.
+    echo [WARN] Health check inconclusive - app may still be starting.
+    echo        Try opening http://localhost:5050/ in your browser.
 )
-del "!BASEDIR!.health_tmp" >nul 2>nul
 
 echo.
 echo ============================================================
