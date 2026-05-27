@@ -25,14 +25,18 @@ echo [OK] Docker is running.
 :: Step 2: Pull latest image from Docker Hub (always pull to get updates)
 :: -----------------------------------------------------------
 echo.
-echo [INFO] Pulling latest SupportBot image from Docker Hub...
+echo [INFO] Checking for latest SupportBot image...
+docker stop supportbot >nul 2>&1
+docker rm supportbot >nul 2>&1
+docker rmi hongzhili40526/supportbot:latest >nul 2>&1
+echo [INFO] Pulling fresh image from Docker Hub...
 docker pull hongzhili40526/supportbot:latest
 if %errorlevel% neq 0 (
     echo [ERROR] Pull failed. Check your internet connection.
     pause
     exit /b 1
 )
-echo [OK] SupportBot image ready.
+echo [OK] SupportBot image ready (latest version).
 
 :: -----------------------------------------------------------
 :: -----------------------------------------------------------
@@ -76,10 +80,6 @@ echo.
 echo ============================================================
 echo   Starting SupportBot...
 echo ============================================================
-
-:: Stop existing container
-docker stop supportbot >nul 2>&1
-docker rm supportbot >nul 2>&1
 
 :: Run container
 docker run -d --name supportbot ^
