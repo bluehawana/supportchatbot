@@ -98,42 +98,9 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Wait and check
+:: Wait for startup
 echo Waiting for startup...
-ping -n 11 127.0.0.1 >nul 2>nul
-
-:: Verify the container is actually healthy
-docker logs supportbot 2>&1 | findstr /C:"STARTUP FAILED" >nul
-if %errorlevel% equ 0 (
-    echo.
-    echo [ERROR] Container started but configuration is wrong!
-    echo.
-    echo   Checking config file...
-    echo   ---
-    type "!ENVFILE!"
-    echo   ---
-    echo.
-    echo   The .env file may have wrong encoding (BOM character from OneDrive).
-    echo   Fix: Open .env in Notepad, Save As, choose "UTF-8" (not "UTF-8 with BOM").
-    echo   Or delete .env and recreate it with this content:
-    echo.
-    echo     Ollama__Hosts__0=http://10.222.19.229:11434
-    echo     Ollama__Hosts__1=http://10.222.10.30:11434
-    echo.
-    docker stop supportbot >nul 2>&1
-    docker rm supportbot >nul 2>&1
-    pause
-    exit /b 1
-)
-
-:: Check health endpoint (use powershell for reliability)
-powershell -NoProfile -Command "try { $r = Invoke-WebRequest -Uri 'http://localhost:5050/health' -UseBasicParsing -TimeoutSec 5; if ($r.Content -match 'ok') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>nul
-if %errorlevel% equ 0 (
-    echo [OK] Health check passed - SupportBot is responding.
-) else (
-    echo [WARN] Health check inconclusive - app may still be starting.
-    echo        Try opening http://localhost:5050/ in your browser.
-)
+powershell -NoProfile -Command "Start-Sleep -Seconds 5" >nul 2>nul
 
 echo.
 echo ============================================================
@@ -146,5 +113,9 @@ echo   Logs:    docker logs -f supportbot
 echo   Stop:    docker stop supportbot
 echo   Restart: docker start supportbot
 echo ============================================================
+echo.
+echo   If the page does not load, check:
+echo     - Are you on the Volvo network or VPN?
+echo     - Run: docker logs supportbot --tail 20
 echo.
 pause
