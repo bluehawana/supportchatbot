@@ -46,33 +46,55 @@ echo [OK] SupportBot image ready (latest version).
 echo [OK] Knowledge base included in Docker image.
 
 :: -----------------------------------------------------------
-:: Step 4: Check .env exists (pre-configured from OneDrive)
+:: Step 4: Check .env exists and has content
 :: -----------------------------------------------------------
-:: Accept both .env and supportbot-env*.env (OneDrive download name)
 set "ENVFILE="
 if exist "!BASEDIR!.env" (
     set "ENVFILE=!BASEDIR!.env"
-    echo [OK] Configuration found (.env^)
-    goto :env_ready
 )
 for %%F in ("!BASEDIR!supportbot-env*.env") do (
     set "ENVFILE=%%F"
-    echo [OK] Configuration found (%%~nxF^)
-    goto :env_ready
 )
-echo.
-echo [ERROR] .env not found in this folder.
-echo.
-echo   Download from OneDrive - open in browser, requires corporate login.
-echo   Save the .env file in this folder, then run setup.bat again.
-echo   You can keep the OneDrive filename or rename it to .env - both work.
-echo.
-echo   The .env file contains Ollama server URLs and model config.
-echo   No credentials are needed for SupportBot.
-echo.
-pause
-exit /b 1
-:env_ready
+
+if "!ENVFILE!"=="" (
+    echo.
+    echo [ERROR] .env not found in this folder.
+    echo.
+    echo   Create a .env file in this folder with the content from Teams chat.
+    echo   Save as UTF-8 in Notepad.
+    echo.
+    pause
+    exit /b 1
+)
+
+:: Check file is not empty
+for %%A in ("!ENVFILE!") do set ENVSIZE=%%~zA
+if "!ENVSIZE!"=="0" (
+    echo.
+    echo [ERROR] .env file is empty!
+    echo.
+    echo   Open .env in Notepad and paste the configuration from Teams chat.
+    echo   Save the file, then run setup.bat again.
+    echo.
+    pause
+    exit /b 1
+)
+
+:: Check it contains Ollama host config
+findstr /I /C:"Ollama" "!ENVFILE!" >nul 2>&1
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] .env file does not contain Ollama configuration!
+    echo.
+    echo   The .env must contain at least:
+    echo     Ollama__Hosts__0=http://...
+    echo.
+    echo   Paste the correct content from Teams chat.
+    echo.
+    pause
+    exit /b 1
+)
+echo [OK] Configuration found and valid.
 
 :: -----------------------------------------------------------
 :: Step 5: Run the container
