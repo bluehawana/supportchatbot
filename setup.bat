@@ -28,10 +28,10 @@ echo.
 echo [INFO] Cleaning up old images and containers...
 docker stop supportbot >nul 2>&1
 docker rm -f supportbot >nul 2>&1
-docker rmi -f hongzhili40526/supportbot:latest >nul 2>&1
+docker rmi -f harvadli28961/supportbot:latest >nul 2>&1
 docker image prune -f >nul 2>&1
 echo [INFO] Pulling fresh image from Docker Hub...
-docker pull hongzhili40526/supportbot:latest
+docker pull harvadli28961/supportbot:latest
 if %errorlevel% neq 0 (
     echo [ERROR] Pull failed. Check your internet connection.
     pause
@@ -111,7 +111,7 @@ docker run -d --name supportbot ^
     --cpus 2 ^
     --restart unless-stopped ^
     --env-file "!ENVFILE!" ^
-    hongzhili40526/supportbot:latest
+    harvadli28961/supportbot:latest
 
 if %errorlevel% neq 0 (
     echo.
